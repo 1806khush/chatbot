@@ -30,14 +30,14 @@ class DeepseekLLM(LLM):
 
     def _call(self, prompt: str, stop: Optional[list[str]] = None) -> str:
         headers = {
-            "HTTP-Referer": "https://medical-chatbot.com",  # Required by OpenRouter
-            "X-Title": "Medical Chatbot",  # Required by OpenRouter
+            "HTTP-Referer": "https://medical-chatbot.com",  
+            "X-Title": "Medical Chatbot",  
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
         
         data = {
-            "model": "openai/gpt-3.5-turbo",  # OpenRouter model identifier
+            "model": "openai/gpt-3.5-turbo",  
             "messages": [
                 {"role": "system", "content": "You are a helpful medical assistant."},
                 {"role": "user", "content": prompt}
@@ -48,7 +48,7 @@ class DeepseekLLM(LLM):
         
         try:
             response = requests.post(
-                "https://openrouter.ai/api/v1/chat/completions",  # Changed to OpenRouter endpoint
+                "https://openrouter.ai/api/v1/chat/completions", 
                 headers=headers,
                 json=data
             )
@@ -77,7 +77,7 @@ app = Flask(__name__)
 load_dotenv()
 
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
-OPENROUTER_API_KEY = "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"  # Changed back to OpenRouter API key
+OPENROUTER_API_KEY = "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" 
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 

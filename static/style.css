@@ -221,3 +221,26 @@ border-radius: 0 0 15px 15px !important;
 	margin-bottom: 15px !important;
 }
 }
+
+
+.audio-control {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    margin-top: auto;
+    margin-bottom: auto;
+    padding: 0 10px;
+}
+
+.audio-control:hover {
+    opacity: 1;
+}
+
+.msg_cotainer {
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.msg_cotainer_send {
+    max-width: 70%;
+    word-wrap: break-word;
+}

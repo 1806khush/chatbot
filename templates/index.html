@@ -10,6 +10,14 @@
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+		<style>
+			.audio-control {
+				margin-left: 10px;
+				cursor: pointer;
+				color: white;
+				font-size: 1.2em;
+			}
+		</style>
 	</head>
 	
 	
@@ -22,7 +30,6 @@
 							<div class="d-flex bd-highlight">
 								<div class="img_cont">
 									<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img">
-									<!-- <img src="https://www.prdistribution.com/spirit/uploads/pressreleases/2019/newsreleases/d83341deb75c4c4f6b113f27b1e42cd8-chatbot-florence-already-helps-thousands-of-patients-to-remember-their-medication.png" class="rounded-circle user_img"> -->
 									<span class="online_icon"></span>
 								</div>
 								<div class="user_info">
@@ -50,6 +57,56 @@
 		
 		<script>
 			$(document).ready(function() {
+				
+				const synth = window.speechSynthesis;
+				let voices = [];
+
+				
+				function loadVoices() {
+					voices = synth.getVoices();
+					console.log("Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+				}
+
+				loadVoices();
+
+			
+				if (speechSynthesis.onvoiceschanged !== undefined) {
+					speechSynthesis.onvoiceschanged = loadVoices;
+				}
+				
+				function speakText(text) {
+					
+					synth.cancel();
+					
+					
+					const utterance = new SpeechSynthesisUtterance(text);
+					
+					
+					utterance.rate = 1.0; 
+					utterance.pitch = 1.1; 
+					utterance.volume = 1.0; 
+					
+					
+					console.log("Selecting voice from:", voices.length, "available voices");
+					const femaleVoice = voices.find(voice => 
+						voice.lang.startsWith('en-US') && 
+						(voice.name.includes('Samantha') || 
+						 voice.name.includes('Female') || 
+						 voice.name.includes('Karen') ||
+						 voice.name.includes('Victoria'))
+					);
+					
+					if (femaleVoice) {
+						console.log("Selected voice:", femaleVoice.name);
+						utterance.voice = femaleVoice;
+					} else {
+						console.log("No preferred female voice found, using default");
+					}
+					
+					
+					synth.speak(utterance);
+				}
+
 				$("#messageArea").on("submit", function(event) {
 					const date = new Date();
 					const hour = date.getHours();
@@ -69,11 +126,31 @@
 						type: "POST",
 						url: "/get",
 					}).done(function(data) {
-						var botHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + data + '<span class="msg_time">' + str_time + '</span></div></div>';
+						
+						var botHtml = '<div class="d-flex justify-content-start mb-4">' +
+							'<div class="img_cont_msg">' +
+							'<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg">' +
+							'</div>' +
+							'<div class="msg_cotainer">' + 
+							data + 
+							'<span class="msg_time">' + str_time + '</span>' +
+							'</div>' +
+							'<i class="fas fa-volume-up audio-control" onclick="window.speakMessage(this)"></i>' +
+							'</div>';
+						
 						$("#messageFormeight").append($.parseHTML(botHtml));
+						
+						
+						speakText(data);
 					});
 					event.preventDefault();
 				});
+
+				
+				window.speakMessage = function(element) {
+					const messageText = $(element).siblings('.msg_cotainer').text();
+					speakText(messageText);
+				};
 			});
 		</script>
         
