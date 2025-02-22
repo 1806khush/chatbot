@@ -6,5 +6,16 @@ setup(
     author = 'Varun K',
     author_email = 'varun.kolte1@gmail.com',
     packages = find_packages(),
-    install_requires = []
+    install_requires = [
+        'flask',
+        'python-dotenv',
+        'langchain',
+        'langchain-community',
+        'langchain-huggingface',
+        'pinecone-client',
+        'langchain-pinecone',
+        'sentence-transformers',
+        'requests',
+        'pypdf'
+    ]
 )
