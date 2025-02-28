@@ -13,5 +13,5 @@ pinecone-plugin-interface
 pinecone-client[grpc]
 langchain-pinecone
 requests
-pypdf=
+pypdf
 gunicorn
