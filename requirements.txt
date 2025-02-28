@@ -6,7 +6,7 @@ langchain-core
 langchain-openai
 langchain-huggingface
 langchain-text-splitters
-langsmith7
+langsmith
 sentence-transformers
 pinecone
 pinecone-plugin-interface
