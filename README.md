@@ -1,10 +1,6 @@
 # Tech Stack
 
-## Backend
-- Flask (Python web framework)
-- LangChain (RAG framework)
-- Pinecone (Vector database)
-- OpenRouter API (LLM provider)
+An intelligent medical assistant chatbot built with Flask and LangChain that provides accurate medical information using RAG (Retrieval Augmented Generation). The chatbot leverages Pinecone for vector storage and HuggingFace embeddings to retrieve relevant medical knowledge from a curated database.
 
 ## Frontend
 - HTML
