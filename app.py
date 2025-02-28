@@ -77,7 +77,7 @@ app = Flask(__name__)
 load_dotenv()
 
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
-OPENROUTER_API_KEY = "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" 
+OPENROUTER_API_KEY = "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" 
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 
@@ -122,4 +122,5 @@ def chat():
     return str(response["answer"])
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)

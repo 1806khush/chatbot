@@ -7,13 +7,19 @@ body,html{
 }
 
 .chat{
-	margin-top: auto;
-	margin-bottom: auto;
+	margin-top: 2rem;
+	margin-bottom: 2rem;
+	width: 95%;
 }
 .card{
-	height: 500px;
+	height: 80vh !important;
+	min-height: 600px;
+	max-width: 1200px;
+	margin: 0 auto;
 	border-radius: 15px !important;
 	background-color: rgba(0,0,0,0.4) !important;
+	animation: fadeIn 0.8s ease-out;
+	box-shadow: 0 0 20px rgba(82, 172, 255, 0.3);
 }
 .contacts_body{
 	padding:  0.75rem 0 !important;
@@ -21,11 +27,24 @@ body,html{
 	white-space: nowrap;
 }
 .msg_card_body{
+	height: calc(80vh - 140px) !important;
 	overflow-y: auto;
+	padding: 1.5rem;
 }
 .card-header{
 	border-radius: 15px 15px 0 0 !important;
 	border-bottom: 0 !important;
+	background: linear-gradient(135deg, #1a73e8, #4285f4) !important;
+	position: relative;
+	overflow: hidden;
+}
+.card-header::before {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMiAydjIwTTIgMTJoMjAiLz48L3N2Zz4=');
+	opacity: 0.1;
 }
 .card-footer{
 border-radius: 0 0 15px 15px !important;
@@ -118,6 +137,7 @@ border-radius: 0 0 15px 15px !important;
 	bottom: 0.2em;
 	right: 0.4em;
 	border:1.5px solid white;
+	animation: pulse 2s infinite;
 }
 .offline{
 	background-color: #c23616 !important;
@@ -130,6 +150,12 @@ border-radius: 0 0 15px 15px !important;
 .user_info span{
 	font-size: 20px;
 	color: white;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.user_info span i {
+	font-size: 0.9em;
 }
 .user_info p{
 	font-size: 10px;
@@ -153,6 +179,7 @@ border-radius: 0 0 15px 15px !important;
 	background-color: rgb(82, 172, 255);
 	padding: 10px;
 	position: relative;
+	animation: fadeIn 0.5s ease-out;
 }
 .msg_cotainer_send{
 	margin-top: auto;
@@ -162,6 +189,7 @@ border-radius: 0 0 15px 15px !important;
 	background-color: #58cc71;
 	padding: 10px;
 	position: relative;
+	animation: fadeIn 0.5s ease-out;
 }
 .msg_time{
 	position: absolute;
@@ -236,11 +264,125 @@ border-radius: 0 0 15px 15px !important;
 }
 
 .msg_cotainer {
-    max-width: 70%;
+    max-width: 85%;
     word-wrap: break-word;
 }
 
 .msg_cotainer_send {
-    max-width: 70%;
+    max-width: 85%;
     word-wrap: break-word;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulse animation for send button */
+.send_btn:hover {
+    animation: pulse 1s infinite;
+}
+
+/* Medical themed scrollbar */
+.msg_card_body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.msg_card_body::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+.msg_card_body::-webkit-scrollbar-thumb {
+    background: #4285f4;
+    border-radius: 10px;
+}
+
+/* Add these styles at the end of the file */
+.feedback-buttons {
+    display: flex;
+    gap: 10px;
+    margin-left: 10px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.feedback-btn {
+    background: none;
+    border: none;
+    color: #ffffff80;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.2em;
+}
+
+.feedback-btn:hover {
+    transform: scale(1.2);
+}
+
+.feedback-btn.positive:hover {
+    color: #4cd137;
+}
+
+.feedback-btn.negative:hover {
+    color: #e74c3c;
+}
+
+.feedback-btn.selected.positive {
+    color: #4cd137;
+}
+
+.feedback-btn.selected.negative {
+    color: #e74c3c;
+}
+
+.feedback-btn:focus {
+    outline: none;
+}
+
+/* Update container for better responsiveness */
+.container-fluid {
+    padding: 0 2rem;
+}
+
+/* Update column sizes for better responsiveness */
+@media(min-width: 1200px) {
+    .col-xl-6 {
+        flex: 0 0 75%;
+        max-width: 75%;
+    }
+}
+
+@media(min-width: 768px) and (max-width: 1199px) {
+    .col-md-8 {
+        flex: 0 0 85%;
+        max-width: 85%;
+    }
+}
+
+@media(max-width: 767px) {
+    .chat {
+        width: 100%;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .card {
+        height: 90vh !important;
+        min-height: 500px;
+    }
+    
+    .msg_card_body {
+        height: calc(90vh - 140px) !important;
+    }
+    
+    .container-fluid {
+        padding: 0 1rem;
+    }
 }

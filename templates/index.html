@@ -33,8 +33,8 @@
 									<span class="online_icon"></span>
 								</div>
 								<div class="user_info">
-									<span>Medical Chatbot</span>
-									<p>I am a medical chatbot trained on 'The Gale Encyclopedia of Medicine'</p>
+									<span>MedBot <i class="fas fa-heartbeat ml-2" style="color: #ff4444; animation: pulse 2s infinite;"></i></span>
+									<p>I am your personal medical assistant. Ask me anything about your health and I will do my best to answer your questions.</p>
 								</div>
 							</div>
 						</div>
@@ -57,55 +57,102 @@
 		
 		<script>
 			$(document).ready(function() {
-				
 				const synth = window.speechSynthesis;
 				let voices = [];
+				let isSpeaking = false;
 
-				
 				function loadVoices() {
 					voices = synth.getVoices();
-					console.log("Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+					console.log("Available voices loaded:", voices.length);
 				}
 
 				loadVoices();
 
-			
 				if (speechSynthesis.onvoiceschanged !== undefined) {
 					speechSynthesis.onvoiceschanged = loadVoices;
 				}
 				
 				function speakText(text) {
-					
-					synth.cancel();
-					
-					
-					const utterance = new SpeechSynthesisUtterance(text);
-					
-					
-					utterance.rate = 1.0; 
-					utterance.pitch = 1.1; 
-					utterance.volume = 1.0; 
-					
-					
-					console.log("Selecting voice from:", voices.length, "available voices");
-					const femaleVoice = voices.find(voice => 
-						voice.lang.startsWith('en-US') && 
-						(voice.name.includes('Samantha') || 
-						 voice.name.includes('Female') || 
-						 voice.name.includes('Karen') ||
-						 voice.name.includes('Victoria'))
-					);
-					
-					if (femaleVoice) {
-						console.log("Selected voice:", femaleVoice.name);
-						utterance.voice = femaleVoice;
-					} else {
-						console.log("No preferred female voice found, using default");
+					if (synth.speaking) {
+						synth.cancel();
 					}
-					
-					
-					synth.speak(utterance);
+
+					const chunks = splitTextIntoChunks(text);
+					let currentChunk = 0;
+
+					function speakNextChunk() {
+						if (currentChunk < chunks.length) {
+							const utterance = new SpeechSynthesisUtterance(chunks[currentChunk]);
+							
+							const preferredVoices = [
+								'Samantha',
+								'Google UK English Female',
+								'Microsoft Zira Desktop',
+								'Karen'
+							];
+
+							const femaleVoice = voices.find(voice => 
+								preferredVoices.some(preferred => 
+									voice.name.includes(preferred)
+								) && voice.lang.startsWith('en')
+							) || voices.find(voice => 
+								voice.name.includes('Female') && 
+								voice.lang.startsWith('en')
+							);
+
+							if (femaleVoice) {
+								utterance.voice = femaleVoice;
+							}
+
+							utterance.volume = 1.5;
+							utterance.rate = 1.0;
+							utterance.pitch = 1.1;
+
+							utterance.onend = () => {
+								currentChunk++;
+								speakNextChunk();
+							};
+
+							utterance.onerror = (event) => {
+								console.error('Speech synthesis error:', event);
+								currentChunk++;
+								speakNextChunk();
+							};
+
+							synth.speak(utterance);
+						}
+					}
+
+					speakNextChunk();
 				}
+
+				function splitTextIntoChunks(text, maxLength = 200) {
+					const chunks = [];
+					const sentences = text.split(/[.!?]+/);
+					let currentChunk = '';
+
+					sentences.forEach(sentence => {
+						if (sentence.trim()) {
+							if (currentChunk.length + sentence.length > maxLength) {
+								chunks.push(currentChunk.trim());
+								currentChunk = '';
+							}
+							currentChunk += sentence.trim() + '. ';
+						}
+					});
+
+					if (currentChunk) {
+						chunks.push(currentChunk.trim());
+					}
+
+					return chunks;
+				}
+
+				document.addEventListener('visibilitychange', () => {
+					if (document.hidden) {
+						synth.cancel();
+					}
+				});
 
 				$("#messageArea").on("submit", function(event) {
 					const date = new Date();
@@ -136,6 +183,14 @@
 							'<span class="msg_time">' + str_time + '</span>' +
 							'</div>' +
 							'<i class="fas fa-volume-up audio-control" onclick="window.speakMessage(this)"></i>' +
+							'<div class="feedback-buttons">' +
+							'<button class="feedback-btn positive" onclick="provideFeedback(this, true)" title="Helpful">' +
+							'<i class="fas fa-thumbs-up"></i>' +
+							'</button>' +
+							'<button class="feedback-btn negative" onclick="provideFeedback(this, false)" title="Not Helpful">' +
+							'<i class="fas fa-thumbs-down"></i>' +
+							'</button>' +
+							'</div>' +
 							'</div>';
 						
 						$("#messageFormeight").append($.parseHTML(botHtml));
@@ -151,8 +206,48 @@
 					const messageText = $(element).siblings('.msg_cotainer').text();
 					speakText(messageText);
 				};
+
+				window.provideFeedback = function(element, isPositive) {
+					$(element).parent().find('.feedback-btn').removeClass('selected');
+					
+					$(element).addClass('selected');
+					
+					const messageText = $(element).parent().siblings('.msg_cotainer').text();
+					
+					console.log(`Feedback for message "${messageText}": ${isPositive ? 'positive' : 'negative'}`);
+					
+					const feedbackType = isPositive ? 'positive' : 'negative';
+					const notification = $('<div class="feedback-notification">')
+						.text(`Thank you for your ${feedbackType} feedback!`)
+						.css({
+							'position': 'fixed',
+							'bottom': '20px',
+							'right': '20px',
+							'background-color': isPositive ? '#4cd137' : '#e74c3c',
+							'color': 'white',
+							'padding': '10px 20px',
+							'border-radius': '5px',
+							'opacity': '0',
+							'transition': 'opacity 0.3s ease'
+						})
+						.appendTo('body');
+					
+					setTimeout(() => {
+						notification.css('opacity', '1');
+						setTimeout(() => {
+							notification.css('opacity', '0');
+							setTimeout(() => notification.remove(), 300);
+						}, 2000);
+					}, 100);
+				};
 			});
 		</script>
         
     </body>
 </html>
+
+<div class="floating-medical-icons">
+    <i class="fas fa-capsules"></i>
+    <i class="fas fa-stethoscope"></i>
+    <i class="fas fa-hospital"></i>
+</div>
