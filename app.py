@@ -77,7 +77,7 @@ app = Flask(__name__)
 load_dotenv()
 
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
-OPENROUTER_API_KEY = "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" 
+OPENROUTER_API_KEY = "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" 
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 
