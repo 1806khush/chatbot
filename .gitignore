@@ -174,3 +174,5 @@ cython_debug/
 
 # New additions
 .DS_Store
+
+.vercel
