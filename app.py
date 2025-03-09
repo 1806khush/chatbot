@@ -123,4 +123,6 @@ def chat():
     print("Response: ", response["answer"])
     return str(response["answer"])
 
-app = app
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
