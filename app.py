@@ -1,15 +1,19 @@
 from flask import Flask, render_template, jsonify, request
 from src.helper import download_hugging_face_embeddings
-from langchain_pinecone import PineconeVectorStore
+try:
+    from langchain_pinecone import PineconeVectorStore
+except ImportError:
+    from langchain.vectorstores import Pinecone as PineconeVectorStore
 from langchain.llms.base import LLM
 import requests
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
-from src.prompt import *
 from typing import Any, Optional
 import os
+
+load_dotenv("chat.env")
 
 class DeepseekLLM(LLM):
     api_key: str
@@ -30,8 +34,8 @@ class DeepseekLLM(LLM):
 
     def _call(self, prompt: str, stop: Optional[list[str]] = None) -> str:
         headers = {
-            "HTTP-Referer": "https://medical-chatbot.com",  
-            "X-Title": "Medical Chatbot",  
+            "HTTP-Referer": "https://tech-chatbot.com",  
+            "X-Title": "Tech Chatbot",  
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
@@ -39,7 +43,7 @@ class DeepseekLLM(LLM):
         data = {
             "model": "openai/gpt-3.5-turbo",  
             "messages": [
-                {"role": "system", "content": "You are a helpful medical assistant."},
+                {"role": "system", "content": "You are a helpful tech assistant."},
                 {"role": "user", "content": prompt}
             ],
             "temperature": self.temperature,
@@ -74,11 +78,8 @@ class DeepseekLLM(LLM):
 
 app = Flask(__name__)
 
-load_dotenv()
-
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
 OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
-
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 os.environ["OPENROUTER_API_KEY"] = OPENROUTER_API_KEY
@@ -99,6 +100,16 @@ llm = DeepseekLLM(
     temperature=0.4,
     max_tokens=500
 )
+
+# System prompt for RAM-focused chatbot
+system_prompt = """
+You are a knowledgeable technical assistant specializing in computer memory, particularly Random-Access Memory (RAM).
+Use the following pieces of context to answer the user's question about RAM.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+Keep your answers technical but understandable, thorough, and accurate.
+
+Context: {context}
+"""
 
 prompt = ChatPromptTemplate.from_messages(
     [

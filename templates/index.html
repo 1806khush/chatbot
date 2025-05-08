@@ -1,253 +1,156 @@
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>MedBot</title>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
-		<style>
-			.audio-control {
-				margin-left: 10px;
-				cursor: pointer;
-				color: white;
-				font-size: 1.2em;
-			}
-		</style>
-	</head>
-	
-	
-	<body>
-		<div class="container-fluid h-100">
-			<div class="row justify-content-center h-100">		
-				<div class="col-md-8 col-xl-6 chat">
-					<div class="card">
-						<div class="card-header msg_head">
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img">
-									<span class="online_icon"></span>
-								</div>
-								<div class="user_info">
-									<span>MedBot <i class="fas fa-heartbeat ml-2" style="color: #ff4444; animation: pulse 2s infinite;"></i></span>
-									<p>I am your medical assistant. Ask me anything about your medical questions and I will do my best to answer your questions.</p>
-								</div>
-							</div>
-						</div>
-						<div id="messageFormeight" class="card-body msg_card_body">
-							
-							
-						</div>
-						<div class="card-footer">
-							<form id="messageArea" class="input-group">
-                                <input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" required/>
-								<div class="input-group-append">
-									<button type="submit" id="send" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
-								</div>
-							</form>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<script>
-			$(document).ready(function() {
-				const synth = window.speechSynthesis;
-				let voices = [];
-				let isSpeaking = false;
-
-				function loadVoices() {
-					voices = synth.getVoices();
-					console.log("Available voices loaded:", voices.length);
-				}
-
-				loadVoices();
-
-				if (speechSynthesis.onvoiceschanged !== undefined) {
-					speechSynthesis.onvoiceschanged = loadVoices;
-				}
-				
-				function speakText(text) {
-					if (synth.speaking) {
-						synth.cancel();
-					}
-
-					const chunks = splitTextIntoChunks(text);
-					let currentChunk = 0;
-
-					function speakNextChunk() {
-						if (currentChunk < chunks.length) {
-							const utterance = new SpeechSynthesisUtterance(chunks[currentChunk]);
-							
-							const preferredVoices = [
-								'Samantha',
-								'Google UK English Female',
-								'Microsoft Zira Desktop',
-								'Karen'
-							];
-
-							const femaleVoice = voices.find(voice => 
-								preferredVoices.some(preferred => 
-									voice.name.includes(preferred)
-								) && voice.lang.startsWith('en')
-							) || voices.find(voice => 
-								voice.name.includes('Female') && 
-								voice.lang.startsWith('en')
-							);
-
-							if (femaleVoice) {
-								utterance.voice = femaleVoice;
-							}
-
-							utterance.volume = 1.5;
-							utterance.rate = 1.0;
-							utterance.pitch = 1.1;
-
-							utterance.onend = () => {
-								currentChunk++;
-								speakNextChunk();
-							};
-
-							utterance.onerror = (event) => {
-								console.error('Speech synthesis error:', event);
-								currentChunk++;
-								speakNextChunk();
-							};
-
-							synth.speak(utterance);
-						}
-					}
-
-					speakNextChunk();
-				}
-
-				function splitTextIntoChunks(text, maxLength = 200) {
-					const chunks = [];
-					const sentences = text.split(/[.!?]+/);
-					let currentChunk = '';
-
-					sentences.forEach(sentence => {
-						if (sentence.trim()) {
-							if (currentChunk.length + sentence.length > maxLength) {
-								chunks.push(currentChunk.trim());
-								currentChunk = '';
-							}
-							currentChunk += sentence.trim() + '. ';
-						}
-					});
-
-					if (currentChunk) {
-						chunks.push(currentChunk.trim());
-					}
-
-					return chunks;
-				}
-
-				document.addEventListener('visibilitychange', () => {
-					if (document.hidden) {
-						synth.cancel();
-					}
-				});
-
-				$("#messageArea").on("submit", function(event) {
-					const date = new Date();
-					const hour = date.getHours();
-					const minute = date.getMinutes();
-					const str_time = hour+":"+minute;
-					var rawText = $("#text").val();
-
-					var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span></div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
-					
-					$("#text").val("");
-					$("#messageFormeight").append(userHtml);
-
-					$.ajax({
-						data: {
-							msg: rawText,	
-						},
-						type: "POST",
-						url: "/get",
-					}).done(function(data) {
-						
-						var botHtml = '<div class="d-flex justify-content-start mb-4">' +
-							'<div class="img_cont_msg">' +
-							'<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg">' +
-							'</div>' +
-							'<div class="msg_cotainer">' + 
-							data + 
-							'<span class="msg_time">' + str_time + '</span>' +
-							'</div>' +
-							'<i class="fas fa-volume-up audio-control" onclick="window.speakMessage(this)"></i>' +
-							'<div class="feedback-buttons">' +
-							'<button class="feedback-btn positive" onclick="provideFeedback(this, true)" title="Helpful">' +
-							'<i class="fas fa-thumbs-up"></i>' +
-							'</button>' +
-							'<button class="feedback-btn negative" onclick="provideFeedback(this, false)" title="Not Helpful">' +
-							'<i class="fas fa-thumbs-down"></i>' +
-							'</button>' +
-							'</div>' +
-							'</div>';
-						
-						$("#messageFormeight").append($.parseHTML(botHtml));
-						
-						
-						speakText(data);
-					});
-					event.preventDefault();
-				});
-
-				
-				window.speakMessage = function(element) {
-					const messageText = $(element).siblings('.msg_cotainer').text();
-					speakText(messageText);
-				};
-
-				window.provideFeedback = function(element, isPositive) {
-					$(element).parent().find('.feedback-btn').removeClass('selected');
-					
-					$(element).addClass('selected');
-					
-					const messageText = $(element).parent().siblings('.msg_cotainer').text();
-					
-					console.log(`Feedback for message "${messageText}": ${isPositive ? 'positive' : 'negative'}`);
-					
-					const feedbackType = isPositive ? 'positive' : 'negative';
-					const notification = $('<div class="feedback-notification">')
-						.text(`Thank you for your ${feedbackType} feedback!`)
-						.css({
-							'position': 'fixed',
-							'bottom': '20px',
-							'right': '20px',
-							'background-color': isPositive ? '#4cd137' : '#e74c3c',
-							'color': 'white',
-							'padding': '10px 20px',
-							'border-radius': '5px',
-							'opacity': '0',
-							'transition': 'opacity 0.3s ease'
-						})
-						.appendTo('body');
-					
-					setTimeout(() => {
-						notification.css('opacity', '1');
-						setTimeout(() => {
-							notification.css('opacity', '0');
-							setTimeout(() => notification.remove(), 300);
-						}, 2000);
-					}, 100);
-				};
-			});
-		</script>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RAM Bot - Your Memory Expert</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .chat-container {
+            height: 70vh;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .bot-msg, .user-msg {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .bot-msg {
+            background-color: #2979FF;
+            float: left;
+            clear: both;
+        }
+        .user-msg {
+            background-color: #424242;
+            float: right;
+            clear: both;
+        }
+        .clear {
+            clear: both;
+        }
+        .chat-input {
+            display: flex;
+            margin-top: 20px;
+        }
+        .form-control {
+            background-color: #333;
+            color: white;
+            border: none;
+        }
+        .form-control:focus {
+            background-color: #444;
+            color: white;
+            border-color: #2979FF;
+            box-shadow: none;
+        }
+        .btn-primary {
+            background-color: #2979FF;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #1565C0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .bot-title {
+            margin-left: 15px;
+        }
+        .bot-subtitle {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="header">
+            <img src="https://via.placeholder.com/80/2979FF/FFFFFF/?text=RAM" alt="RAM Bot" style="width: 60px; height: 60px; border-radius: 50%;">
+            <div class="bot-title">
+                <h1>RAM Bot</h1>
+                <p class="bot-subtitle">I am your RAM and computer memory expert. Ask me anything about RAM technologies, specifications, or issues.</p>
+            </div>
+        </div>
         
-    </body>
-</html>
+        <div class="chat-container" id="chatbox">
+            <div class="bot-msg">
+                Hello! I'm RAMBot, your Random Access Memory specialist. Ask me anything about RAM, memory technologies, or computer memory systems, and I'll provide detailed information based on the latest knowledge.
+            </div>
+            <div class="clear"></div>
+        </div>
+        
+        <form id="chat-form">
+            <div class="input-group mb-3">
+                <input type="text" id="textInput" class="form-control" placeholder="Ask something about RAM..." aria-label="Message">
+                <button class="btn btn-primary" type="submit">Send</button>
+            </div>
+        </form>
+    </div>
 
-<div class="floating-medical-icons">
-    <i class="fas fa-capsules"></i>
-    <i class="fas fa-stethoscope"></i>
-    <i class="fas fa-hospital"></i>
-</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#chat-form").on("submit", function(e) {
+                e.preventDefault();
+                
+                // Get the message from the input
+                var rawText = $("#textInput").val();
+                if (rawText.trim() == '') {
+                    return;
+                }
+                
+                // Create a user message div
+                var userHtml = '<div class="user-msg">' + rawText + '</div><div class="clear"></div>';
+                $("#chatbox").append(userHtml);
+                
+                // Clear the input
+                $("#textInput").val("");
+                
+                // Scroll to the bottom of the chat container
+                $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+                
+                // Send the message to the server
+                $.ajax({
+                    url: "/get",
+                    type: "POST",
+                    data: {msg: rawText},
+                    success: function(response) {
+                        // Create a bot message div
+                        var botHtml = '<div class="bot-msg">' + response + '</div><div class="clear"></div>';
+                        $("#chatbox").append(botHtml);
+                        
+                        // Scroll to the bottom of the chat container
+                        $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+                    },
+                    error: function(error) {
+                        // Create an error message
+                        var errorHtml = '<div class="bot-msg">Sorry, there was an error processing your request.</div><div class="clear"></div>';
+                        $("#chatbox").append(errorHtml);
+                        
+                        // Scroll to the bottom of the chat container
+                        $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
